@@ -33,5 +33,7 @@
 *.swp
 build/*
 *.DS_Store
+
 file_watcher
-solution/*
+solution/
+.cache/

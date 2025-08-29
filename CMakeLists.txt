@@ -1,44 +1,65 @@
-cmake_minimum_required(VERSION 3.1)
-set(ROOT "${CMAKE_CURRENT_LIST_DIR}")
+cmake_minimum_required(VERSION 3.20)
 project(shaderpipeline)
-option(USE_SOLUTION "Use solution"  OFF)
-# Add your project files
-include_directories("include/")
-# create executable
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
 
-# OpenGL library
-if (NOT CMAKE_VERSION VERSION_LESS "3.11")
+# C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# OpenGL
+if(NOT CMAKE_VERSION VERSION_LESS "3.11")
   cmake_policy(SET CMP0072 NEW)
 endif()
-find_package(OpenGL REQUIRED)
+find_package(OpenGL REQUIRED) # provides OpenGL::GL
 
-if(USE_SOLUTION)
-  add_definitions("-DUSE_SOLUTION")
-endif()
 
+# Include GLFW and GLAD cmake projects
 if(NOT TARGET glfw)
+  # Turn off building examples, tests, docs, and install rules.
+  # Just include the library.
   set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL " " FORCE)
   set(GLFW_BUILD_TESTS OFF CACHE BOOL " " FORCE)
   set(GLFW_BUILD_DOCS OFF CACHE BOOL " " FORCE)
   set(GLFW_INSTALL OFF CACHE BOOL " " FORCE)
-  add_subdirectory(${ROOT}/glfw glfw)
+  add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/glfw")
+endif()
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/glad")
+
+# Executable target
+add_executable(${PROJECT_NAME} main.cpp)
+
+# Use solution or src code
+option(USE_SOLUTION "Build with solution code enabled" OFF)
+if(USE_SOLUTION)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_SOLUTION)
 endif()
 
-add_subdirectory(${ROOT}/glad glad)
+# Add project headers
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
 
-add_executable(${PROJECT_NAME} main.cpp)
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${OPENGL_INCLUDE_DIR})
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${ROOT}/eigen/)
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${ROOT}/glfw/include)
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${ROOT}/glad/include)
-target_link_libraries(${PROJECT_NAME} glfw ${OPENGL_gl_LIBRARY} glad)
+# Eigen
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/eigen")
+
+# Link libraries
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    glfw
+    glad
+    OpenGL::GL
+)
+
+# Warnings
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /permissive-)
+else()
+  target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# ---- macOS frameworks (usually handled by glfw; keep as reference) ----
+# if(APPLE)
+#   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Cocoa" "-framework IOKit" "-framework CoreVideo")
+# endif()
+
