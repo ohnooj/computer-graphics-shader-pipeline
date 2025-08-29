@@ -36,12 +36,12 @@ endif()
 
 # Add project headers
 target_include_directories(${PROJECT_NAME}
-  PRIVATE
+  PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 # Eigen
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/eigen")
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/eigen")
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME}
