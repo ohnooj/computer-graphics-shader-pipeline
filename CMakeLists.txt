@@ -58,3 +58,7 @@ else()
   target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+if(MSVC)
+  # Use M_PI for windows
+  target_compile_definitions(${PROJECT_NAME} PRIVATE _USE_MATH_DEFINES)
+endif()
