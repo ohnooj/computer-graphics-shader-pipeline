@@ -58,8 +58,3 @@ else()
   target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# ---- macOS frameworks (usually handled by glfw; keep as reference) ----
-# if(APPLE)
-#   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Cocoa" "-framework IOKit" "-framework CoreVideo")
-# endif()
-
